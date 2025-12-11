@@ -25,21 +25,11 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <div class="badge animate-in">
-                🎓 Jahidul Arafat — Presidential & Woltosz Graduate Research Fellow (Auburn University)
-                | Former Senior Solution Architect at Oracle
-            </div>
-
-            <h1 class="title animate-in delay-1">
-                The Hidden Cost of <span class="highlight">Data Privacy</span>
-            </h1>
-
-            <p class="subtitle animate-in delay-2">
-                Understanding how DP noise and data fragility introduce uncertainty into critical civic decision-making.
-            </p>
+            <div class="badge animate-in">🎓 Interactive Research Explorer v3.0</div>
+            <h1 class="title animate-in delay-1">The Hidden Cost of <span class="highlight">Data Privacy</span></h1>
+            <p class="subtitle animate-in delay-2">Explore how protecting individual privacy in census data creates real uncertainty that affects schools, hospitals, and political representation for millions of Americans.</p>
         </header>
-
-
+        
         <!-- Introduction -->
         <section class="intro-section animate-in delay-3">
             <div class="intro-grid">
@@ -315,11 +305,11 @@
                             <input type="text" id="storyStakes" placeholder="e.g., $500K annually">
                         </div>
                         <div class="form-group full-width">
-                            <label>Optional: Upload CSV Data</label>
+                            <label>Upload Raw Data (CSV)</label>
                             <div class="csv-upload-area" id="csvUploadArea">
                                 <div class="csv-upload-icon">📄</div>
                                 <p class="csv-upload-text">Drag & drop a CSV file or click to browse</p>
-                                <p class="csv-upload-hint">Format: epsilon, true_value, noisy_value, threshold, decision, flip_flag</p>
+                                <p class="csv-upload-hint">Upload raw data (census, enrollment, health records, etc.) - system will auto-detect format and calculate DP metrics</p>
                             </div>
                             <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
                             <div class="csv-file-info" id="csvFileInfo" style="display: none;">
@@ -392,6 +382,7 @@
     </div>
     
     <!-- Scripts -->
+    <script src="js/data-processor.js"></script>
     <script src="js/scenario-data.js"></script>
     <script src="js/components.js"></script>
     <script src="js/app.js"></script>

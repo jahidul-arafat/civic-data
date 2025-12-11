@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congressional Redistricting | Civic Data Explorer</title>
+    <meta name="description" content="Explore how differential privacy affects congressional redistricting and political representation decisions.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/scenarios.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <div class="atmosphere"></div>
+    <div class="grid-pattern"></div>
+    
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="scenario-nav">
+            <a href="../index.html" class="back-link">← Back to Explorer</a>
+            <div class="scenario-tabs">
+                <a href="scenario-school.html" class="scenario-tab">🏫 School</a>
+                <a href="scenario-hospital.html" class="scenario-tab">🏥 Clinic</a>
+                <a href="scenario-redistrict.html" class="scenario-tab active">🗳️ Redistricting</a>
+            </div>
+        </nav>
+        
+        <!-- Scenario Hero -->
+        <section class="scenario-hero">
+            <div class="scenario-hero-grid">
+                <div class="scenario-icon-large">🗳️</div>
+                <div>
+                    <div class="badge badge--violet">Scenario Deep Dive</div>
+                    <h1>Congressional Redistricting</h1>
+                    <p class="tagline">Democracy's Foundation Built on Uncertain Ground</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Full Narrative Panel -->
+        <section class="narrative-panel">
+            <h2>📖 The Full Story</h2>
+            <div class="narrative-content">
+                <p>The <strong>Arizona Independent Redistricting Commission</strong> convenes every decade following census data release to redraw congressional district boundaries. Under the principle of <span class="narrative-term">"one person, one vote,"</span> districts must achieve population equality within strict tolerances—typically ±1% of the ideal district size. For the upcoming cycle, one rapidly growing region presents a pivotal question: does the Maricopa County eastern expansion zone warrant carving out an entirely new congressional district?</p>
+                
+                <p>The region's true population stands at approximately <strong>710,000 residents</strong>—10,000 above the 700,000 threshold that would justify an additional seat under the state's apportionment formula. At first glance, this margin appears comfortable. However, the Census Bureau's differential privacy implementation introduces uncertainty that, while proportionally small at this scale, still spans a range that includes the threshold.</p>
+                
+                <p><strong>Commissioner Rachel Torres</strong> faces competing pressures. Community advocates argue that the region's rapid growth demands increased representation. Incumbent representatives express concern that district reconfiguration could create electoral uncertainty. Legal counsel warns that any map drawn using contested population figures invites litigation. And the census data itself—the supposedly objective foundation for all these decisions—now comes with asterisks and confidence intervals.</p>
+                
+                <p>The commission must adopt final maps within 18 months of data release. Appeals and legal challenges routinely extend to the election cycle itself, leaving voters uncertain which district they belong to until weeks before casting ballots. In extreme cases, courts have imposed their own maps when commissions fail to reach consensus—removing the decision from democratically accountable bodies entirely.</p>
+            </div>
+            
+            <div class="professional-context">
+                <div class="professional-context-header">
+                    <span class="role-icon">⚖️</span>
+                    <h4>Professional Role Context: Redistricting Commissioner</h4>
+                </div>
+                <p>As a redistricting commissioner, you review census block-level data to construct districts meeting equal population requirements. The data release includes both point estimates and uncertainty metrics. When you aggregate blocks for the contested region, the confidence interval spans from 695,000 to 725,000—meaning you cannot statistically confirm whether the threshold is met. Your legal team asks how to defend any map choice against inevitable court challenge.</p>
+            </div>
+        </section>
+        
+        <!-- Micro-Story -->
+        <div class="micro-story">
+            <p class="micro-story-text">A commissioner draws a line on a map, knowing the population figures beneath it carry margins of error larger than the margins of victory in the last three elections.</p>
+            <p class="micro-story-attribution">— Democracy's new arithmetic</p>
+        </div>
+        
+        <!-- Decision Pressure -->
+        <div class="decision-pressure">
+            <div class="pressure-header">
+                <span class="pressure-icon">⚡</span>
+                <h4>Decision Pressure Level: EXTREME</h4>
+            </div>
+            <div class="pressure-meter">
+                <div class="pressure-fill" style="width: 92%;"></div>
+            </div>
+            <p class="pressure-description"><strong>Extreme decision pressure:</strong> Constitutional requirements mandate population equality across districts. Maps face near-certain legal challenge from opposing parties. Uncertainty in base data provides grounds for litigation from multiple directions. Electoral consequences affect representation for a full decade.</p>
+        </div>
+        
+        <!-- Actors -->
+        <section class="actors-section">
+            <h2>👥 Civic Actors Involved</h2>
+            <div class="actors-grid">
+                <div class="actor-card"><div class="actor-icon">⚖️</div><div class="actor-title">Redistricting Commissioner</div><div class="actor-role">Map approval authority</div></div>
+                <div class="actor-card"><div class="actor-icon">🗳️</div><div class="actor-title">Elections Director</div><div class="actor-role">Implementation coordinator</div></div>
+                <div class="actor-card"><div class="actor-icon">👨‍⚖️</div><div class="actor-title">Voting Rights Attorney</div><div class="actor-role">Legal compliance advisor</div></div>
+                <div class="actor-card"><div class="actor-icon">📊</div><div class="actor-title">Demographer</div><div class="actor-role">Population data analyst</div></div>
+                <div class="actor-card"><div class="actor-icon">🏛️</div><div class="actor-title">State Legislature</div><div class="actor-role">Oversight and appeals body</div></div>
+                <div class="actor-card"><div class="actor-icon">👥</div><div class="actor-title">Community Advocates</div><div class="actor-role">Representation stakeholders</div></div>
+            </div>
+        </section>
+        
+        <!-- Legal Framework -->
+        <div class="legal-framework">
+            <h3>⚖️ Legal & Statistical Framework</h3>
+            <div class="legal-items">
+                <span class="legal-tag">14th Amendment Equal Protection</span>
+                <span class="legal-tag">Voting Rights Act (Section 2)</span>
+                <span class="legal-tag">Reynolds v. Sims (1964)</span>
+                <span class="legal-tag">P.L. 94-171 Redistricting Data</span>
+                <span class="legal-tag">State Apportionment Statutes</span>
+                <span class="legal-tag">Rucho v. Common Cause (2019)</span>
+            </div>
+        </div>
+        
+        <!-- Decision Flow Table -->
+        <section class="decision-flow-section">
+            <h2>📋 Data-Driven Decision Flow</h2>
+            <table class="decision-flow-table">
+                <thead>
+                    <tr><th>Step</th><th>Data Input</th><th>DP Effect</th><th>Risk Level</th><th>Operational Impact</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="step-num">1</span> Census</td><td>Decennial census enumeration</td><td>Full-count data protected via TopDown Algorithm</td><td><span class="risk-indicator low">Controlled</span></td><td>National totals constrained; local counts vary</td></tr>
+                    <tr><td><span class="step-num">2</span> State Totals</td><td>State-level population for apportionment</td><td>Post-processing maintains state totals exactly</td><td><span class="risk-indicator low">Low</span></td><td>Congressional seat allocation unaffected</td></tr>
+                    <tr><td><span class="step-num">3</span> Block Data</td><td>Census block data for district building</td><td>Block-level noise aggregates non-uniformly</td><td><span class="risk-indicator medium">Medium</span></td><td>District totals carry compounded uncertainty</td></tr>
+                    <tr><td><span class="step-num">4</span> Threshold</td><td>Regional population vs. seat threshold</td><td>±1-2% uncertainty at 700K scale</td><td><span class="risk-indicator high">High</span></td><td>Cannot confirm if region qualifies for new seat</td></tr>
+                    <tr><td><span class="step-num">5</span> Map Adoption</td><td>Final district boundary decision</td><td>Legal vulnerability from data uncertainty</td><td><span class="risk-indicator high">Critical</span></td><td>Map defended or overturned in court</td></tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Terminology -->
+        <section class="terminology-section">
+            <h2>📚 Civic Terminology Layer</h2>
+            <div class="terminology-grid">
+                <div class="term-card"><div class="term-name">One Person, One Vote</div><div class="term-definition">Constitutional principle requiring legislative districts to have substantially equal populations.</div></div>
+                <div class="term-card"><div class="term-name">Apportionment</div><div class="term-definition">Process of allocating congressional seats among states based on decennial census counts.</div></div>
+                <div class="term-card"><div class="term-name">Malapportionment</div><div class="term-definition">Constitutional violation when districts have unequal populations, diluting some voters' influence.</div></div>
+                <div class="term-card"><div class="term-name">P.L. 94-171 Data</div><div class="term-definition">Census redistricting data file mandated by law for state legislative redistricting use.</div></div>
+                <div class="term-card"><div class="term-name">TopDown Algorithm</div><div class="term-definition">Census Bureau's hierarchical DP mechanism ensuring geographic consistency from nation to block level.</div></div>
+                <div class="term-card"><div class="term-name">Population Deviation</div><div class="term-definition">Percentage difference between a district's population and the ideal equal-population target.</div></div>
+                <div class="term-card"><div class="term-name">Compactness</div><div class="term-definition">Redistricting criterion measuring geographic regularity of district shapes.</div></div>
+                <div class="term-card"><div class="term-name">Communities of Interest</div><div class="term-definition">Groups sharing common concerns that redistricting should try to keep together.</div></div>
+            </div>
+        </section>
+        
+        <!-- Additional Context: Constitutional Stakes -->
+        <div class="callout warning">
+            <div class="callout-icon">⚠️</div>
+            <div class="callout-content">
+                <h4>Constitutional Implications</h4>
+                <p>Unlike school funding or clinic placement, redistricting decisions carry constitutional weight. The Equal Protection Clause of the 14th Amendment requires population equality among legislative districts. When the underlying population data carries statistical uncertainty, constitutional compliance itself becomes probabilistic.</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer-cta">
+            <h2>Try the Interactive Simulator</h2>
+            <p>Return to the main explorer to simulate how different privacy levels (ε) affect this redistricting decision in real-time.</p>
+            <div class="cta-buttons">
+                <a href="../index.html#simTitle" class="btn btn-primary">🔬 Open Simulator</a>
+                <a href="scenario-school.html" class="btn btn-secondary">← Back to School Funding</a>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="../js/scenario-data.js"></script>
+    <script src="../js/components.js"></script>
+</body>
+</html>
