@@ -4,1077 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Understanding Data Privacy & Civic Decisions | Interactive Explorer</title>
+    <meta name="description" content="Explore how differential privacy in census data creates real uncertainty affecting schools, hospitals, and political representation.">
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/enhanced.css">
+    <link rel="stylesheet" href="css/scenarios.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-deep: #0c1220;
-            --bg-primary: #121a2e;
-            --bg-card: #1a2540;
-            --bg-elevated: #243256;
-            --bg-highlight: #2d3f6a;
-            
-            --text-bright: #f4f7fb;
-            --text-primary: #d8e2ef;
-            --text-secondary: #9ba8c2;
-            --text-muted: #6b7a96;
-            
-            --accent-gold: #f0b429;
-            --accent-gold-soft: rgba(240, 180, 41, 0.15);
-            --accent-teal: #2dd4bf;
-            --accent-teal-soft: rgba(45, 212, 191, 0.12);
-            --accent-coral: #fb7185;
-            --accent-coral-soft: rgba(251, 113, 133, 0.12);
-            --accent-violet: #a78bfa;
-            --accent-violet-soft: rgba(167, 139, 250, 0.12);
-            --accent-sky: #38bdf8;
-            --accent-sky-soft: rgba(56, 189, 248, 0.12);
-            
-            --success: #34d399;
-            --warning: #fbbf24;
-            --danger: #f87171;
-            
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-medium: rgba(255, 255, 255, 0.12);
-            
-            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.3);
-            --shadow-glow-gold: 0 0 40px rgba(240, 180, 41, 0.2);
-            --shadow-glow-teal: 0 0 40px rgba(45, 212, 191, 0.15);
-        }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        html { scroll-behavior: smooth; }
-        
-        body {
-            font-family: 'Source Sans 3', sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
-            line-height: 1.7;
-            min-height: 100vh;
-        }
-        
-        /* Atmospheric Background */
-        .atmosphere {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            background: 
-                radial-gradient(ellipse 100% 80% at 0% 0%, rgba(240, 180, 41, 0.04) 0%, transparent 50%),
-                radial-gradient(ellipse 80% 60% at 100% 100%, rgba(45, 212, 191, 0.04) 0%, transparent 50%),
-                radial-gradient(ellipse 60% 40% at 50% 50%, rgba(167, 139, 250, 0.02) 0%, transparent 60%);
-        }
-        
-        .grid-pattern {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.015;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
-            background-size: 80px 80px;
-        }
-        
-        /* Main Container */
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 32px;
-        }
-        
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--accent-gold-soft);
-            border: 1px solid rgba(240, 180, 41, 0.3);
-            border-radius: 100px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent-gold);
-            margin-bottom: 24px;
-            letter-spacing: 0.5px;
-        }
-        
-        .title {
-            font-family: 'Fraunces', serif;
-            font-size: clamp(2.2rem, 5vw, 3.5rem);
-            font-weight: 600;
-            color: var(--text-bright);
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-        
-        .title .highlight {
-            background: linear-gradient(135deg, var(--accent-gold), var(--accent-coral));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .subtitle {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        /* Introduction Section */
-        .intro-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 48px;
-        }
-        
-        .intro-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            align-items: start;
-        }
-        
-        @media (max-width: 900px) {
-            .intro-grid { grid-template-columns: 1fr; }
-        }
-        
-        .intro-content h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.6rem;
-            color: var(--text-bright);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .intro-content h2 .icon {
-            font-size: 1.8rem;
-        }
-        
-        .intro-content p {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-            font-size: 1.05rem;
-        }
-        
-        .intro-content p strong {
-            color: var(--accent-teal);
-        }
-        
-        .key-concept {
-            background: var(--bg-elevated);
-            border-left: 4px solid var(--accent-gold);
-            padding: 20px 24px;
-            border-radius: 0 12px 12px 0;
-            margin: 24px 0;
-        }
-        
-        .key-concept-label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent-gold);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        
-        .key-concept p {
-            margin: 0;
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-        
-        .real-world-box {
-            background: linear-gradient(135deg, var(--accent-teal-soft), var(--accent-sky-soft));
-            border: 1px solid rgba(45, 212, 191, 0.2);
-            border-radius: 16px;
-            padding: 24px;
-        }
-        
-        .real-world-box h3 {
-            font-family: 'Fraunces', serif;
-            color: var(--accent-teal);
-            margin-bottom: 16px;
-            font-size: 1.1rem;
-        }
-        
-        .data-source {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-        
-        .data-source:last-child { border-bottom: none; }
-        
-        .data-source-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--bg-card);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-        }
-        
-        .data-source-info h4 {
-            font-size: 0.95rem;
-            color: var(--text-bright);
-            margin-bottom: 4px;
-        }
-        
-        .data-source-info p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin: 0;
-        }
-        
-        /* Why This Matters Section */
-        .why-matters {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin-bottom: 48px;
-        }
-        
-        @media (max-width: 900px) {
-            .why-matters { grid-template-columns: 1fr; }
-        }
-        
-        .impact-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 28px;
-            transition: all 0.3s ease;
-        }
-        
-        .impact-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-soft);
-            border-color: var(--border-medium);
-        }
-        
-        .impact-card.funding { border-top: 4px solid var(--accent-gold); }
-        .impact-card.health { border-top: 4px solid var(--accent-coral); }
-        .impact-card.democracy { border-top: 4px solid var(--accent-violet); }
-        
-        .impact-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-        }
-        
-        .impact-card.funding .impact-icon { background: var(--accent-gold-soft); }
-        .impact-card.health .impact-icon { background: var(--accent-coral-soft); }
-        .impact-card.democracy .impact-icon { background: var(--accent-violet-soft); }
-        
-        .impact-card h3 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.2rem;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-        }
-        
-        .impact-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 16px;
-        }
-        
-        .impact-stat {
-            background: var(--bg-elevated);
-            padding: 14px 18px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .impact-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        
-        .impact-stat-value {
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        
-        .impact-card.funding .impact-stat-value { color: var(--accent-gold); }
-        .impact-card.health .impact-stat-value { color: var(--accent-coral); }
-        .impact-card.democracy .impact-stat-value { color: var(--accent-violet); }
-        
-        /* Scenario Selection */
-        .scenario-section {
-            margin-bottom: 48px;
-        }
-        
-        .section-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-        
-        .section-header h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.8rem;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-        }
-        
-        .section-header p {
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-        }
-        
-        .scenario-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-        
-        @media (max-width: 1000px) {
-            .scenario-cards { grid-template-columns: 1fr; }
-        }
-        
-        .scenario-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 32px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .scenario-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent-gold), var(--accent-teal));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-        
-        .scenario-card:hover::before,
-        .scenario-card.active::before {
-            transform: scaleX(1);
-        }
-        
-        .scenario-card:hover,
-        .scenario-card.active {
-            border-color: var(--accent-gold);
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-glow-gold);
-        }
-        
-        .scenario-emoji {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            display: block;
-        }
-        
-        .scenario-card h3 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.3rem;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-        }
-        
-        .scenario-card > p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-        }
-        
-        .scenario-details {
-            background: var(--bg-elevated);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        .scenario-detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-subtle);
-            font-size: 0.9rem;
-        }
-        
-        .scenario-detail-row:last-child { border-bottom: none; }
-        
-        .scenario-detail-row span:first-child {
-            color: var(--text-muted);
-        }
-        
-        .scenario-detail-row span:last-child {
-            color: var(--text-bright);
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 500;
-        }
-        
-        /* Main Simulator */
-        .simulator-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 48px;
-        }
-        
-        .simulator-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .simulator-header h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.8rem;
-            color: var(--text-bright);
-            margin-bottom: 8px;
-        }
-        
-        .simulator-header p {
-            color: var(--text-secondary);
-        }
-        
-        .context-banner {
-            background: linear-gradient(135deg, var(--accent-gold-soft), var(--accent-teal-soft));
-            border: 1px solid rgba(240, 180, 41, 0.2);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 32px;
-        }
-        
-        .context-banner h4 {
-            color: var(--accent-gold);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-        }
-        
-        .context-banner p {
-            color: var(--text-primary);
-            font-size: 1.05rem;
-            margin: 0;
-        }
-        
-        .simulator-layout {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 32px;
-        }
-        
-        @media (max-width: 1000px) {
-            .simulator-layout { grid-template-columns: 1fr; }
-        }
-        
-        .control-panel {
-            background: var(--bg-elevated);
-            border-radius: 16px;
-            padding: 28px;
-        }
-        
-        .control-panel h3 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.1rem;
-            color: var(--text-bright);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .data-display {
-            margin-bottom: 28px;
-        }
-        
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-        
-        .data-row:last-child { border-bottom: none; }
-        
-        .data-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-        
-        .data-value {
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-            color: var(--text-bright);
-            font-size: 1.1rem;
-        }
-        
-        .slider-container {
-            margin-top: 24px;
-        }
-        
-        .slider-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .slider-header label {
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-        
-        .epsilon-badge {
-            background: var(--accent-gold-soft);
-            color: var(--accent-gold);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .slider-track {
-            position: relative;
-            height: 48px;
-            margin-bottom: 12px;
-        }
-        
-        .slider-track input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--accent-teal), var(--accent-gold), var(--accent-coral));
-            outline: none;
-            margin-top: 20px;
-        }
-        
-        .slider-track input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--text-bright);
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-            border: 3px solid var(--accent-gold);
-            transition: all 0.2s;
-        }
-        
-        .slider-track input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: var(--shadow-glow-gold);
-        }
-        
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        
-        .slider-labels span:first-child { color: var(--accent-teal); }
-        .slider-labels span:last-child { color: var(--accent-coral); }
-        
-        /* Visualization Panel */
-        .viz-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-        
-        .viz-card {
-            background: var(--bg-elevated);
-            border-radius: 16px;
-            padding: 28px;
-        }
-        
-        .viz-card h4 {
-            font-family: 'Fraunces', serif;
-            font-size: 1rem;
-            color: var(--text-bright);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* Threshold Bar */
-        .threshold-viz {
-            position: relative;
-            height: 80px;
-            margin: 20px 0;
-        }
-        
-        .threshold-bar {
-            position: absolute;
-            top: 30px;
-            left: 0;
-            right: 0;
-            height: 20px;
-            background: var(--bg-card);
-            border-radius: 10px;
-            overflow: visible;
-        }
-        
-        .uncertainty-range {
-            position: absolute;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(45, 212, 191, 0.4), rgba(56, 189, 248, 0.4));
-            border: 2px solid var(--accent-teal);
-            border-radius: 10px;
-            transition: all 0.4s ease;
-        }
-        
-        .threshold-line {
-            position: absolute;
-            top: -10px;
-            bottom: -10px;
-            width: 4px;
-            background: var(--accent-coral);
-            border-radius: 2px;
-            transform: translateX(-50%);
-            z-index: 3;
-        }
-        
-        .threshold-label {
-            position: absolute;
-            bottom: -30px;
-            transform: translateX(-50%);
-            font-size: 0.75rem;
-            color: var(--accent-coral);
-            white-space: nowrap;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        
-        .value-marker {
-            position: absolute;
-            top: -15px;
-            width: 12px;
-            height: 50px;
-            transform: translateX(-50%);
-            z-index: 4;
-        }
-        
-        .value-dot {
-            width: 12px;
-            height: 12px;
-            background: var(--text-bright);
-            border: 3px solid var(--accent-gold);
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(240, 180, 41, 0.5);
-        }
-        
-        .value-label {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: var(--accent-gold);
-            white-space: nowrap;
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 600;
-        }
-        
-        .range-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 35px;
-        }
-        
-        /* Decision Outcome */
-        .decision-outcome {
-            text-align: center;
-            padding: 24px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .decision-outcome.positive {
-            background: rgba(52, 211, 153, 0.1);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-        }
-        
-        .decision-outcome.negative {
-            background: rgba(248, 113, 113, 0.1);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-        }
-        
-        .decision-outcome.uncertain {
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-        }
-        
-        .decision-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 12px;
-        }
-        
-        .decision-outcome.positive .decision-badge {
-            background: rgba(52, 211, 153, 0.2);
-            color: var(--success);
-        }
-        
-        .decision-outcome.negative .decision-badge {
-            background: rgba(248, 113, 113, 0.2);
-            color: var(--danger);
-        }
-        
-        .decision-outcome.uncertain .decision-badge {
-            background: rgba(251, 191, 36, 0.2);
-            color: var(--warning);
-        }
-        
-        .decision-outcome p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin: 0;
-        }
-        
-        /* Insight Box */
-        .insight-box {
-            background: var(--bg-highlight);
-            border-left: 4px solid var(--accent-sky);
-            border-radius: 0 12px 12px 0;
-            padding: 20px 24px;
-        }
-        
-        .insight-box h5 {
-            color: var(--accent-sky);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-        
-        .insight-box p {
-            color: var(--text-primary);
-            margin: 0;
-            font-size: 0.95rem;
-        }
-        
-        /* Statistics Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-        
-        .stat-box {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 18px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text-bright);
-            margin-bottom: 4px;
-        }
-        
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-        
-        /* Educational Explainer */
-        .explainer-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            padding: 40px;
-            margin-bottom: 48px;
-        }
-        
-        .explainer-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .explainer-header h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.8rem;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-        }
-        
-        .step-timeline {
-            position: relative;
-            padding-left: 60px;
-        }
-        
-        .step-timeline::before {
-            content: '';
-            position: absolute;
-            left: 24px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(180deg, var(--accent-gold), var(--accent-teal), var(--accent-violet));
-        }
-        
-        .timeline-step {
-            position: relative;
-            margin-bottom: 40px;
-        }
-        
-        .timeline-step:last-child { margin-bottom: 0; }
-        
-        .step-number {
-            position: absolute;
-            left: -60px;
-            width: 48px;
-            height: 48px;
-            background: var(--bg-elevated);
-            border: 3px solid var(--accent-gold);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'IBM Plex Mono', monospace;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--accent-gold);
-        }
-        
-        .timeline-step:nth-child(2) .step-number { border-color: var(--accent-teal); color: var(--accent-teal); }
-        .timeline-step:nth-child(3) .step-number { border-color: var(--accent-violet); color: var(--accent-violet); }
-        .timeline-step:nth-child(4) .step-number { border-color: var(--accent-coral); color: var(--accent-coral); }
-        
-        .step-content {
-            background: var(--bg-elevated);
-            border-radius: 16px;
-            padding: 28px;
-        }
-        
-        .step-content h4 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.15rem;
-            color: var(--text-bright);
-            margin-bottom: 12px;
-        }
-        
-        .step-content p {
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-        }
-        
-        .step-example {
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 16px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
-        }
-        
-        .step-example-label {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-family: 'Source Sans 3', sans-serif;
-        }
-        
-        .step-example code {
-            color: var(--accent-gold);
-        }
-        
-        /* Consequences Grid */
-        .consequences-section {
-            margin-bottom: 48px;
-        }
-        
-        .consequences-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-        
-        @media (max-width: 800px) {
-            .consequences-grid { grid-template-columns: 1fr; }
-        }
-        
-        .consequence-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 32px;
-            transition: all 0.3s ease;
-        }
-        
-        .consequence-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-soft);
-        }
-        
-        .consequence-card.winners {
-            border-left: 4px solid var(--success);
-        }
-        
-        .consequence-card.losers {
-            border-left: 4px solid var(--danger);
-        }
-        
-        .consequence-card h3 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.2rem;
-            color: var(--text-bright);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .consequence-list {
-            list-style: none;
-        }
-        
-        .consequence-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-        
-        .consequence-list li:last-child { border-bottom: none; }
-        
-        .consequence-list li::before {
-            content: '→';
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        
-        /* Footer CTA */
-        .footer-cta {
-            text-align: center;
-            padding: 60px 40px;
-            background: linear-gradient(135deg, var(--accent-gold-soft), var(--accent-teal-soft));
-            border: 1px solid rgba(240, 180, 41, 0.2);
-            border-radius: 24px;
-        }
-        
-        .footer-cta h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 1.8rem;
-            color: var(--text-bright);
-            margin-bottom: 16px;
-        }
-        
-        .footer-cta p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto 32px;
-        }
-        
-        .cta-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 14px 32px;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-family: 'Source Sans 3', sans-serif;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-gold), var(--accent-coral));
-            color: var(--bg-deep);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-glow-gold);
-        }
-        
-        .btn-secondary {
-            background: var(--bg-card);
-            color: var(--text-bright);
-            border: 1px solid var(--border-medium);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--bg-elevated);
-            border-color: var(--accent-gold);
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .animate-in {
-            animation: fadeInUp 0.6s ease forwards;
-        }
-        
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-    </style>
 </head>
 <body>
     <div class="atmosphere"></div>
@@ -1083,656 +25,369 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <div class="badge animate-in">🎓 Interactive CIVIC DP Research Explorer | By Jahidul Arafat</div>
-            <h1 class="title animate-in delay-1">
-                The Hidden Cost of <span class="highlight">Data Privacy</span>
-            </h1>
-            <p class="subtitle animate-in delay-2">
-                Explore how protecting individual privacy in census data creates real uncertainty 
-                that affects schools, hospitals, and political representation for millions of Americans.
-            </p>
+            <div class="badge animate-in">🎓 Interactive Research Explorer v2.0</div>
+            <h1 class="title animate-in delay-1">The Hidden Cost of <span class="highlight">Data Privacy</span></h1>
+            <p class="subtitle animate-in delay-2">Explore how protecting individual privacy in census data creates real uncertainty that affects schools, hospitals, and political representation for millions of Americans.</p>
         </header>
         
-        <!-- Introduction Section -->
+        <!-- Introduction -->
         <section class="intro-section animate-in delay-3">
             <div class="intro-grid">
                 <div class="intro-content">
                     <h2><span class="icon">🤔</span> What's the Problem?</h2>
-                    <p>
-                        Every 10 years, the U.S. Census counts every person in America. This data decides 
-                        <strong>who gets funding</strong>, <strong>where hospitals are built</strong>, and 
-                        <strong>how many representatives your state gets in Congress</strong>.
-                    </p>
-                    <p>
-                        But here's the dilemma: Publishing exact numbers could reveal private information 
-                        about individuals. Imagine a small town with only 3 residents over age 90—publishing 
-                        that exact number might identify specific people.
-                    </p>
-                    
+                    <p>Every 10 years, the U.S. Census counts every person in America. This data decides <strong>who gets funding</strong>, <strong>where hospitals are built</strong>, and <strong>how many representatives your state gets in Congress</strong>.</p>
+                    <p>But here's the dilemma: Publishing exact numbers could reveal private information about individuals.</p>
                     <div class="key-concept">
                         <div class="key-concept-label">💡 The Core Tradeoff</div>
-                        <p>
-                            To protect privacy, the Census Bureau adds <em>random noise</em> to the data before 
-                            publishing. This is called <strong>Differential Privacy (DP)</strong>. More privacy 
-                            protection = more noise = less accurate numbers.
-                        </p>
+                        <p>To protect privacy, the Census Bureau adds <em>random noise</em> to the data before publishing. This is called <strong>Differential Privacy (DP)</strong>. More privacy protection = more noise = less accurate numbers.</p>
                     </div>
-                    
-                    <p>
-                        This means that the population count your school district uses to apply for federal 
-                        funding might be <em>slightly wrong</em>—and that small error could mean the difference 
-                        between getting $2.4 million or nothing.
-                    </p>
                 </div>
-                
                 <div class="real-world-box">
                     <h3>📊 Where This Data Comes From</h3>
-                    
-                    <div class="data-source">
-                        <div class="data-source-icon">🏛️</div>
-                        <div class="data-source-info">
-                            <h4>U.S. Census Bureau</h4>
-                            <p>Decennial Census (2020, 2030) — First to use Differential Privacy at scale</p>
-                        </div>
-                    </div>
-                    
-                    <div class="data-source">
-                        <div class="data-source-icon">📚</div>
-                        <div class="data-source-info">
-                            <h4>Department of Education</h4>
-                            <p>Title I funding allocation based on census poverty data</p>
-                        </div>
-                    </div>
-                    
-                    <div class="data-source">
-                        <div class="data-source-icon">🗳️</div>
-                        <div class="data-source-info">
-                            <h4>State Legislatures</h4>
-                            <p>Congressional redistricting using census population counts</p>
-                        </div>
-                    </div>
-                    
-                    <div class="data-source">
-                        <div class="data-source-icon">🏥</div>
-                        <div class="data-source-info">
-                            <h4>HRSA (Health Resources)</h4>
-                            <p>Rural health clinic approvals based on population thresholds</p>
-                        </div>
-                    </div>
+                    <div class="data-source"><div class="data-source-icon">🏛️</div><div class="data-source-info"><h4>U.S. Census Bureau</h4><p>Decennial Census — First to use DP at scale</p></div></div>
+                    <div class="data-source"><div class="data-source-icon">📚</div><div class="data-source-info"><h4>Department of Education</h4><p>Title I funding allocation</p></div></div>
+                    <div class="data-source"><div class="data-source-icon">🗳️</div><div class="data-source-info"><h4>State Legislatures</h4><p>Congressional redistricting</p></div></div>
+                    <div class="data-source"><div class="data-source-icon">🏥</div><div class="data-source-info"><h4>HRSA</h4><p>Rural health clinic approvals</p></div></div>
                 </div>
             </div>
         </section>
         
-        <!-- Why This Matters -->
+        <!-- Impact Cards -->
         <section class="why-matters animate-in">
             <div class="impact-card funding">
                 <div class="impact-icon">🏫</div>
                 <h3>School Funding at Risk</h3>
-                <p>
-                    Title I provides federal money to schools serving low-income children. 
-                    If noisy data understates your eligible population, your school loses funding 
-                    that real children need.
-                </p>
-                <div class="impact-stat">
-                    <span class="impact-stat-label">Annual Title I Budget</span>
-                    <span class="impact-stat-value">$17.5 Billion</span>
-                </div>
+                <p>Districts on the edge of Title I eligibility face uncertainty.</p>
+                <div class="impact-stat"><span class="impact-stat-label">Districts near thresholds</span><span class="impact-stat-value">~2,400</span></div>
             </div>
-            
             <div class="impact-card health">
                 <div class="impact-icon">🏥</div>
-                <h3>Healthcare Access Denied</h3>
-                <p>
-                    Rural areas need minimum population counts to qualify for clinics. 
-                    Privacy noise could make a community of 5,100 look like 4,900—denying 
-                    healthcare to thousands.
-                </p>
-                <div class="impact-stat">
-                    <span class="impact-stat-label">Americans in Rural Areas</span>
-                    <span class="impact-stat-value">60 Million</span>
-                </div>
+                <h3>Healthcare Access Gaps</h3>
+                <p>Small communities may be denied services based on noisy data.</p>
+                <div class="impact-stat"><span class="impact-stat-label">Rural areas affected</span><span class="impact-stat-value">~1,800</span></div>
             </div>
-            
             <div class="impact-card democracy">
                 <div class="impact-icon">🗳️</div>
-                <h3>Representation at Stake</h3>
-                <p>
-                    Congressional seats are allocated by population. A state on the border 
-                    of gaining or losing a seat could be affected by data uncertainty.
-                </p>
-                <div class="impact-stat">
-                    <span class="impact-stat-label">Districts Redrawn</span>
-                    <span class="impact-stat-value">435 Seats</span>
-                </div>
+                <h3>Representation Questions</h3>
+                <p>Small errors could affect representation for millions.</p>
+                <div class="impact-stat"><span class="impact-stat-label">Seats with close margins</span><span class="impact-stat-value">~12</span></div>
             </div>
         </section>
         
-        <!-- Scenario Selection -->
-        <section class="scenario-section">
-            <div class="section-header">
-                <h2>🎮 Choose Your Scenario</h2>
-                <p>Select a real-world situation to explore how data uncertainty affects decisions</p>
+        <!-- Mode Tabs -->
+        <nav class="mode-tabs">
+            <div class="mode-tab-list">
+                <button class="mode-tab active" data-mode="single">📊 Single Scenario</button>
+                <button class="mode-tab" data-mode="comparison">🔄 Compare All</button>
+                <button class="mode-tab" data-mode="builder">✏️ Build Your Own</button>
             </div>
-            
-            <div class="scenario-cards">
-                <div class="scenario-card active" data-scenario="school" onclick="selectScenario('school')">
-                    <span class="scenario-emoji">🏫</span>
-                    <h3>School Funding Decision</h3>
-                    <p>
-                        You're a school administrator. Does your district qualify for 
-                        Title I federal funding based on low-income child counts?
-                    </p>
-                    <div class="scenario-details">
-                        <div class="scenario-detail-row">
-                            <span>Qualification Threshold</span>
-                            <span>1,200 children</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>True Population</span>
-                            <span>1,247 children</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>Stakes</span>
-                            <span>$2.4M annually</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="scenario-card" data-scenario="hospital" onclick="selectScenario('hospital')">
-                    <span class="scenario-emoji">🏥</span>
-                    <h3>Rural Clinic Placement</h3>
-                    <p>
-                        You're a health planning official. Should this rural area 
-                        receive approval for a new community health clinic?
-                    </p>
-                    <div class="scenario-details">
-                        <div class="scenario-detail-row">
-                            <span>Minimum Population</span>
-                            <span>5,000 residents</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>True Population</span>
-                            <span>4,850 residents</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>Stakes</span>
-                            <span>Healthcare access</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="scenario-card" data-scenario="redistrict" onclick="selectScenario('redistrict')">
-                    <span class="scenario-emoji">🗳️</span>
-                    <h3>Congressional Redistricting</h3>
-                    <p>
-                        You're on a redistricting commission. Does this region's population 
-                        justify an additional congressional representative?
-                    </p>
-                    <div class="scenario-details">
-                        <div class="scenario-detail-row">
-                            <span>Seat Threshold</span>
-                            <span>700,000 people</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>True Population</span>
-                            <span>710,000 people</span>
-                        </div>
-                        <div class="scenario-detail-row">
-                            <span>Stakes</span>
-                            <span>Political power</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        </nav>
         
-        <!-- Main Simulator -->
-        <section class="simulator-section">
-            <div class="simulator-header">
-                <h2 id="simTitle">🔬 Privacy vs. Accuracy Simulator</h2>
-                <p id="simSubtitle">Drag the slider to see how privacy settings change your data and decision confidence</p>
-            </div>
-            
-            <div class="context-banner" id="contextBanner">
-                <h4>📋 Current Scenario Context</h4>
-                <p id="contextText">
-                    Title I funding requires school districts to have at least 1,200 children from low-income 
-                    families to qualify. Your district actually has 1,247 eligible children—just 47 above the 
-                    threshold. But the published census data includes privacy noise...
-                </p>
-            </div>
-            
-            <div class="simulator-layout">
-                <div class="control-panel">
-                    <h3>⚙️ Data Controls</h3>
-                    
-                    <div class="data-display">
-                        <div class="data-row">
-                            <span class="data-label">True (Hidden) Value</span>
-                            <span class="data-value" id="trueValue">1,247</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Decision Threshold</span>
-                            <span class="data-value" id="threshold">1,200</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Published (Noisy) Value</span>
-                            <span class="data-value" id="noisyValue" style="color: var(--accent-gold);">—</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Uncertainty Range</span>
-                            <span class="data-value" id="rangeValue" style="color: var(--accent-teal);">—</span>
-                        </div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-header">
-                            <label>Privacy Level (Epsilon ε)</label>
-                            <span class="epsilon-badge" id="epsilonBadge">ε = 1.0</span>
-                        </div>
-                        <div class="slider-track">
-                            <input type="range" id="epsilonSlider" min="0.1" max="5" step="0.1" value="1.0">
-                        </div>
-                        <div class="slider-labels">
-                            <span>🔒 Maximum Privacy</span>
-                            <span>📊 Maximum Accuracy</span>
-                        </div>
-                    </div>
-                    
-                    <div class="stats-grid" style="margin-top: 24px;">
-                        <div class="stat-box">
-                            <div class="stat-value" id="errorPercent">—</div>
-                            <div class="stat-label">Error %</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value" id="noiseScale">—</div>
-                            <div class="stat-label">Noise Scale</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value" id="confidence">—</div>
-                            <div class="stat-label">Confidence</div>
-                        </div>
-                    </div>
+        <!-- SINGLE SCENARIO MODE -->
+        <div class="mode-content active" data-mode="single">
+            <section class="scenario-section">
+                <div class="section-header">
+                    <h2>Choose Your Scenario</h2>
+                    <p>Select a real-world situation to explore how privacy noise affects critical decisions</p>
                 </div>
                 
-                <div class="viz-panel">
-                    <div class="viz-card">
-                        <h4>📊 Threshold Visualization</h4>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
-                            The <span style="color: var(--accent-coral);">red line</span> is the decision threshold. 
-                            The <span style="color: var(--accent-teal);">teal band</span> shows the uncertainty range 
-                            of the published data. The <span style="color: var(--accent-gold);">gold dot</span> is the 
-                            reported value.
-                        </p>
-                        <div class="threshold-viz">
-                            <div class="threshold-bar">
-                                <div class="uncertainty-range" id="uncertaintyRange"></div>
-                                <div class="threshold-line" id="thresholdLine">
-                                    <span class="threshold-label" id="thresholdLabel">Threshold: 1,200</span>
-                                </div>
-                                <div class="value-marker" id="valueMarker">
-                                    <span class="value-label" id="valueLabel">1,247</span>
-                                    <div class="value-dot"></div>
+                <div class="scenario-cards">
+                    <div class="scenario-card active" data-scenario="school" onclick="selectScenario('school')">
+                        <span class="scenario-emoji">🏫</span>
+                        <h3>School Funding Decision</h3>
+                        <p>Does your district qualify for $2.4M in Title I federal education funding?</p>
+                        <div class="scenario-details">
+                            <div class="scenario-detail-row"><span>Threshold</span><span>1,200 children</span></div>
+                            <div class="scenario-detail-row"><span>True Value</span><span>1,247 children</span></div>
+                            <div class="scenario-detail-row"><span>Stakes</span><span>$2.4M annually</span></div>
+                        </div>
+                        <a href="html/scenario-school.html" class="btn btn-ghost" style="margin-top: 16px; width: 100%;" onclick="event.stopPropagation();">View Full Analysis →</a>
+                    </div>
+                    <div class="scenario-card" data-scenario="hospital" onclick="selectScenario('hospital')">
+                        <span class="scenario-emoji">🏥</span>
+                        <h3>Rural Clinic Placement</h3>
+                        <p>Should this rural area receive approval for a new health clinic?</p>
+                        <div class="scenario-details">
+                            <div class="scenario-detail-row"><span>Threshold</span><span>5,000 residents</span></div>
+                            <div class="scenario-detail-row"><span>True Value</span><span>4,850 residents</span></div>
+                            <div class="scenario-detail-row"><span>Stakes</span><span>Healthcare access</span></div>
+                        </div>
+                        <a href="html/scenario-hospital.html" class="btn btn-ghost" style="margin-top: 16px; width: 100%;" onclick="event.stopPropagation();">View Full Analysis →</a>
+                    </div>
+                    <div class="scenario-card" data-scenario="redistrict" onclick="selectScenario('redistrict')">
+                        <span class="scenario-emoji">🗳️</span>
+                        <h3>Congressional Redistricting</h3>
+                        <p>Does this region justify an additional congressional representative?</p>
+                        <div class="scenario-details">
+                            <div class="scenario-detail-row"><span>Threshold</span><span>700,000 people</span></div>
+                            <div class="scenario-detail-row"><span>True Value</span><span>710,000 people</span></div>
+                            <div class="scenario-detail-row"><span>Stakes</span><span>Political power</span></div>
+                        </div>
+                        <a href="html/scenario-redistrict.html" class="btn btn-ghost" style="margin-top: 16px; width: 100%;" onclick="event.stopPropagation();">View Full Analysis →</a>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Main Simulator -->
+            <section class="simulator-section">
+                <div class="simulator-header">
+                    <h2 id="simTitle">🔬 Privacy vs. Accuracy Simulator</h2>
+                    <p id="simSubtitle">Drag the slider to see how privacy settings change your data and decision confidence</p>
+                </div>
+                
+                <div class="context-banner">
+                    <h4>📋 Current Scenario Context</h4>
+                    <p id="contextText">Title I funding requires school districts to have at least 1,200 children from low-income families to qualify.</p>
+                </div>
+                
+                <div class="simulator-layout">
+                    <div class="control-panel">
+                        <h3>⚙️ Data Controls</h3>
+                        <div class="data-display">
+                            <div class="data-row"><span class="data-label">True (Hidden) Value</span><span class="data-value" id="trueValue">1,247</span></div>
+                            <div class="data-row"><span class="data-label">Decision Threshold</span><span class="data-value" id="threshold">1,200</span></div>
+                            <div class="data-row"><span class="data-label">Published (Noisy) Value</span><span class="data-value" id="noisyValue" style="color: var(--accent-gold);">—</span></div>
+                            <div class="data-row"><span class="data-label">Uncertainty Range</span><span class="data-value" id="rangeValue" style="color: var(--accent-teal);">—</span></div>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <label>Privacy Level (Epsilon ε)</label>
+                                <span class="epsilon-badge" id="epsilonBadge">ε = 1.0</span>
+                            </div>
+                            <div class="slider-track">
+                                <input type="range" id="epsilonSlider" min="0.1" max="5" step="0.1" value="1.0">
+                            </div>
+                            <div class="slider-labels"><span>🔒 Max Privacy</span><span>📊 Max Accuracy</span></div>
+                        </div>
+                        
+                        <div class="stats-grid" style="margin-top: 24px;">
+                            <div class="stat-box"><div class="stat-value" id="errorPercent">—</div><div class="stat-label">Error %</div></div>
+                            <div class="stat-box"><div class="stat-value" id="noiseScale">—</div><div class="stat-label">Noise Scale</div></div>
+                            <div class="stat-box"><div class="stat-value" id="confidence">—</div><div class="stat-label">Confidence</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="viz-panel">
+                        <div class="viz-card">
+                            <h4>📊 Threshold Visualization</h4>
+                            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">The <span style="color: var(--accent-coral);">red line</span> is the threshold. The <span style="color: var(--accent-teal);">teal band</span> shows uncertainty. The <span style="color: var(--accent-gold);">gold dot</span> is the reported value.</p>
+                            <div class="threshold-viz">
+                                <div class="threshold-bar">
+                                    <div class="uncertainty-range" id="uncertaintyRange"></div>
+                                    <div class="threshold-line" id="thresholdLine"><span class="threshold-label" id="thresholdLabel">Threshold: 1,200</span></div>
+                                    <div class="value-marker" id="valueMarker"><span class="value-label" id="valueLabel">1,247</span><div class="value-dot"></div></div>
                                 </div>
                             </div>
+                            <div class="range-labels"><span id="rangeLow">Low: —</span><span id="rangeHigh">High: —</span></div>
                         </div>
-                        <div class="range-labels">
-                            <span id="rangeLow">Low: —</span>
-                            <span id="rangeHigh">High: —</span>
+                        
+                        <div class="viz-card">
+                            <h4>⚖️ Your Decision</h4>
+                            <div class="decision-outcome uncertain" id="decisionOutcome">
+                                <div class="decision-badge">⏳ Adjust the slider above</div>
+                                <p>Move the privacy slider to see how it affects your decision</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="viz-card">
-                        <h4>⚖️ Your Decision</h4>
-                        <div class="decision-outcome uncertain" id="decisionOutcome">
-                            <div class="decision-badge">⏳ Adjust the slider above</div>
-                            <p>Move the privacy slider to see how it affects your decision</p>
+                        
+                        <div class="insight-box">
+                            <h5>💡 What This Means</h5>
+                            <p id="insightText">The privacy parameter ε (epsilon) controls the tradeoff. Lower ε = stronger privacy but more noise.</p>
                         </div>
-                    </div>
-                    
-                    <div class="insight-box" id="insightBox">
-                        <h5>💡 What This Means</h5>
-                        <p id="insightText">
-                            The privacy parameter ε (epsilon) controls the tradeoff. Lower ε means stronger 
-                            privacy but more noise. Higher ε means less privacy but more accurate data.
-                        </p>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+            
+            <!-- Advanced Analytics Preview -->
+            <section class="advanced-charts-section">
+                <div class="charts-header">
+                    <h2>📈 Advanced Analytics</h2>
+                    <a href="html/analytics.html" class="btn btn-primary" target="_blank">🔬 Open Full Dashboard →</a>
+                </div>
+                
+                <div class="analytics-embed">
+                    <iframe id="analyticsFrame" src="html/analytics.html" style="width: 100%; height: 600px; border: none; border-radius: 16px;"></iframe>
+                </div>
+                
+                <p style="text-align: center; color: var(--text-muted); margin-top: var(--space-md); font-size: 0.9rem;">
+                    📊 12 interactive charts including distribution, CDF, sensitivity analysis, and cross-scenario comparison. 
+                    <a href="html/analytics.html" target="_blank" style="color: var(--accent-gold);">Open in new tab</a> for full experience.
+                </p>
+            </section>
+            
+            <!-- Flow Diagram -->
+            <section class="flow-diagram-section">
+                <div class="flow-diagram-header">
+                    <h2>🔗 DP Decision Pipeline</h2>
+                    <span class="badge badge--violet">Interactive Flow</span>
+                </div>
+                <div class="flow-diagram-container">
+                    <div class="flow-pipeline" id="flowPipeline"></div>
+                </div>
+                <div class="trace-panel">
+                    <div class="trace-header"><span class="trace-icon">🔍</span><span class="trace-title">Trace View</span></div>
+                    <div class="trace-content" id="traceContent"><p>Adjust the epsilon slider to see how data flows through the DP pipeline...</p></div>
+                </div>
+            </section>
+        </div>
         
-        <!-- Educational Explainer -->
+        <!-- COMPARISON MODE -->
+        <div class="mode-content" data-mode="comparison">
+            <section class="comparison-section">
+                <div class="comparison-header">
+                    <h2>🔄 Multi-Scenario Comparison</h2>
+                    <p style="color: var(--text-secondary);">Compare how DP affects different civic decisions at the current ε setting</p>
+                </div>
+                
+                <div class="comparison-table-wrapper">
+                    <table class="comparison-summary-table">
+                        <thead><tr><th></th><th>Scenario</th><th>True Value</th><th>Threshold</th><th>Error</th><th>Flip Prob</th><th>Stakes</th></tr></thead>
+                        <tbody id="comparisonTableBody"></tbody>
+                    </table>
+                </div>
+                
+                <div class="chart-card" style="margin-top: var(--space-xl);">
+                    <h4>📈 Wrong Decision Probability by Scenario</h4>
+                    <p class="chart-description">How the probability of a wrong decision varies with ε for each scenario.</p>
+                    <div class="comparison-chart-container"><canvas id="comparisonChart"></canvas></div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- STORY BUILDER MODE -->
+        <div class="mode-content" data-mode="builder">
+            <section class="story-builder-section">
+                <div class="story-builder-header">
+                    <h2>✏️ Build Your Own Scenario</h2>
+                    <span class="story-count-badge" id="storyCountBadge">0/10 scenarios</span>
+                </div>
+                
+                <form class="story-builder-form" id="storyBuilderForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Scenario Name *</label>
+                            <input type="text" id="storyName" placeholder="e.g., Community Library Funding" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Icon</label>
+                            <input type="hidden" id="storyIcon" value="📊">
+                            <div class="icon-selector" id="iconSelector"></div>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea id="storyDescription" placeholder="Describe the scenario and its stakes..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>True Value *</label>
+                            <input type="number" id="storyTrueValue" placeholder="e.g., 1247" required>
+                            <span class="form-hint">The actual population/count</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Threshold *</label>
+                            <input type="number" id="storyThreshold" placeholder="e.g., 1200" required>
+                            <span class="form-hint">The cutoff for approval/denial</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Sensitivity</label>
+                            <input type="number" id="storySensitivity" placeholder="1" value="1" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="storyCategory">
+                                <option value="funding">💰 Funding</option>
+                                <option value="health">❤️ Health</option>
+                                <option value="democracy">🗳️ Democracy</option>
+                                <option value="infrastructure">🏗️ Infrastructure</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Stakes Description</label>
+                            <input type="text" id="storyStakes" placeholder="e.g., $500K annually">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Optional: Upload CSV Data</label>
+                            <div class="csv-upload-area" id="csvUploadArea">
+                                <div class="csv-upload-icon">📄</div>
+                                <p class="csv-upload-text">Drag & drop a CSV file or click to browse</p>
+                                <p class="csv-upload-hint">Format: epsilon, true_value, noisy_value, threshold, decision, flip_flag</p>
+                            </div>
+                            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                            <div class="csv-file-info" id="csvFileInfo" style="display: none;">
+                                <span>📄</span><span class="csv-file-name" id="csvFileName"></span>
+                                <button type="button" class="csv-remove-btn" onclick="removeCsvFile()">×</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-ghost" onclick="this.form.reset()">Clear</button>
+                        <button type="submit" class="btn btn-primary">Create Scenario</button>
+                    </div>
+                </form>
+                
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); color: var(--text-bright);">Your Custom Scenarios</h3>
+                <div class="user-stories-grid" id="userStoriesGrid">
+                    <div class="empty-stories"><div class="empty-stories-icon">📝</div><p>No custom scenarios yet. Create your first one above!</p></div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Explainer Section -->
         <section class="explainer-section">
             <div class="explainer-header">
-                <h2>🧠 How Differential Privacy Works</h2>
-                <p style="color: var(--text-secondary);">A step-by-step breakdown of the process</p>
+                <h2>🎓 How Differential Privacy Works</h2>
+                <p style="color: var(--text-secondary);">Understanding the mechanism behind the tradeoff</p>
             </div>
-            
             <div class="step-timeline">
-                <div class="timeline-step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>Census Collects True Data</h4>
-                        <p>
-                            The Census Bureau counts every person in America. For your school district, 
-                            they counted exactly 1,247 children from low-income families. This is the 
-                            <strong>true value</strong> that nobody outside the Census Bureau ever sees.
-                        </p>
-                        <div class="step-example">
-                            <div class="step-example-label">Example</div>
-                            <code>True low-income children count = 1,247</code>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="timeline-step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>Random Noise is Added</h4>
-                        <p>
-                            Before publishing, random numbers are added to protect individual privacy. 
-                            This "noise" follows a mathematical distribution (Laplace) that guarantees 
-                            privacy. The amount of noise depends on the privacy parameter ε.
-                        </p>
-                        <div class="step-example">
-                            <div class="step-example-label">Example at ε = 1.0</div>
-                            <code>Noise added ≈ random value between -50 and +50</code>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="timeline-step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>Noisy Data is Published</h4>
-                        <p>
-                            The public only sees the noisy number. They don't know if the true value 
-                            was higher or lower. This uncertainty is what protects privacy—you can't 
-                            be certain about any individual's data.
-                        </p>
-                        <div class="step-example">
-                            <div class="step-example-label">What the public sees</div>
-                            <code>Published count = 1,217 (could be off by ±50)</code>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="timeline-step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h4>Decision Makers Face Uncertainty</h4>
-                        <p>
-                            Schools, hospitals, and legislatures must make binary decisions (yes/no) 
-                            based on this noisy data. When the true value is close to a threshold, 
-                            the noise could flip the decision—potentially harming real communities.
-                        </p>
-                        <div class="step-example">
-                            <div class="step-example-label">The Problem</div>
-                            <code>True: 1,247 (qualifies) → Published: 1,180 (denied!)</code>
-                        </div>
-                    </div>
-                </div>
+                <div class="timeline-step"><div class="step-number">1</div><div class="step-content"><h4>True Data Collection</h4><p>The Census Bureau collects individual responses from every household.</p><div class="step-example"><div class="step-example-label">Example</div><code>Household #4521: 4 people, ages 42, 40, 15, 12</code></div></div></div>
+                <div class="timeline-step"><div class="step-number">2</div><div class="step-content"><h4>Noise Injection</h4><p>Random noise drawn from a Laplace distribution is added. Amount controlled by ε.</p><div class="step-example"><div class="step-example-label">Formula</div><code>Published = True + Laplace(0, sensitivity/ε)</code></div></div></div>
+                <div class="timeline-step"><div class="step-number">3</div><div class="step-content"><h4>Publication & Use</h4><p>Noisy data is released publicly. Decision-makers use this data—often unaware of uncertainty.</p><div class="step-example"><div class="step-example-label">Reality</div><code>True: 1,247 → Published: 1,218 → Decision: DENIED</code></div></div></div>
+                <div class="timeline-step"><div class="step-number">4</div><div class="step-content"><h4>Threshold Decisions</h4><p>When published values are compared against thresholds, noise can flip outcomes.</p><div class="step-example"><div class="step-example-label">Impact</div><code>$2.4M in funding lost due to statistical noise</code></div></div></div>
             </div>
         </section>
         
         <!-- Consequences Section -->
         <section class="consequences-section">
-            <div class="section-header">
-                <h2>⚖️ Who Wins and Who Loses?</h2>
-                <p>The real-world consequences of privacy noise on civic decisions</p>
-            </div>
-            
+            <div class="section-header"><h2>Who Wins and Who Loses?</h2><p>The uneven impact of privacy-accuracy tradeoffs</p></div>
             <div class="consequences-grid">
                 <div class="consequence-card winners">
-                    <h3>✅ Privacy Protection Benefits</h3>
+                    <h3>✅ Benefits From DP</h3>
                     <ul class="consequence-list">
-                        <li>Individuals in small geographic areas can't be identified</li>
-                        <li>Sensitive attributes (health, income) remain confidential</li>
-                        <li>Prevents "reconstruction attacks" that piece together identities</li>
-                        <li>Builds public trust in data collection programs</li>
-                        <li>Meets legal requirements for statistical confidentiality</li>
+                        <li>Individuals in small, identifiable groups gain privacy protection</li>
+                        <li>Vulnerable populations face reduced re-identification risk</li>
+                        <li>Large metropolitan areas experience minimal data distortion</li>
+                        <li>Privacy researchers gain a mathematically rigorous framework</li>
                     </ul>
                 </div>
-                
                 <div class="consequence-card losers">
-                    <h3>❌ Accuracy Costs</h3>
+                    <h3>❌ Harmed By DP</h3>
                     <ul class="consequence-list">
-                        <li>Small communities face largest relative errors</li>
-                        <li>Borderline cases may receive wrong decisions</li>
-                        <li>Rural areas disproportionately affected</li>
-                        <li>Decision makers can't distinguish signal from noise</li>
-                        <li>Appeals and corrections become difficult without true data</li>
+                        <li>Small communities face proportionally larger errors</li>
+                        <li>Rural areas may lose eligibility for health programs</li>
+                        <li>School districts near thresholds face funding uncertainty</li>
+                        <li>Minority populations may become statistically invisible</li>
                     </ul>
                 </div>
             </div>
         </section>
         
-        <!-- Footer CTA -->
-        <section class="footer-cta">
-            <h2>🔬 This is a Research Problem</h2>
-            <p>
-                How do we help decision makers understand and work with uncertain data? 
-                This is the core question driving our research into uncertainty-aware civic data tools.
-            </p>
+        <!-- Footer -->
+        <footer class="footer-cta">
+            <h2>Explore the Full Research</h2>
+            <p>This interactive explorer accompanies academic research on the civic implications of differential privacy.</p>
             <div class="cta-buttons">
-                <button class="btn btn-primary" onclick="resetAndExplore()">🔄 Try Another Scenario</button>
+                <button class="btn btn-primary" onclick="resetAndExplore()">🔬 Try Another Scenario</button>
                 <button class="btn btn-secondary" onclick="scrollToTop()">↑ Back to Top</button>
             </div>
-        </section>
+        </footer>
     </div>
     
-    <script>
-        // Scenario configurations
-        const scenarios = {
-            school: {
-                title: '🏫 School Funding Decision',
-                subtitle: 'Does your school district qualify for Title I federal funding?',
-                trueValue: 1247,
-                threshold: 1200,
-                aboveOutcome: 'QUALIFIES — $2.4M in Title I funding approved',
-                belowOutcome: 'DENIED — No Title I funding this year',
-                context: `Title I funding requires school districts to have at least 1,200 children from low-income 
-                    families to qualify. Your district actually has 1,247 eligible children—just 47 above the 
-                    threshold. But the published census data includes privacy noise, which could push the 
-                    reported number below the threshold...`,
-                sensitivity: 1,
-                scale: 1
-            },
-            hospital: {
-                title: '🏥 Rural Clinic Placement',
-                subtitle: 'Should this area receive a new community health clinic?',
-                trueValue: 4850,
-                threshold: 5000,
-                aboveOutcome: 'APPROVED — Rural health clinic construction authorized',
-                belowOutcome: 'DENIED — Population insufficient for clinic',
-                context: `Federal guidelines require a minimum population of 5,000 residents within a service 
-                    area before a rural health clinic can be approved. This community actually has 4,850 
-                    residents—150 below the threshold. Privacy noise could potentially push the number 
-                    above the threshold, or confirm the denial...`,
-                sensitivity: 1,
-                scale: 1
-            },
-            redistrict: {
-                title: '🗳️ Congressional Redistricting',
-                subtitle: 'Does this region deserve an additional representative?',
-                trueValue: 710000,
-                threshold: 700000,
-                aboveOutcome: 'GAINS SEAT — Additional congressional representation awarded',
-                belowOutcome: 'NO CHANGE — Does not qualify for additional seat',
-                context: `Congressional seats are apportioned based on population. This region has 710,000 
-                    residents—just 10,000 above the threshold for an additional seat. At this scale, 
-                    even small percentage errors from privacy noise could affect whether the region 
-                    gains political representation...`,
-                sensitivity: 1000,
-                scale: 1000
-            }
-        };
-        
-        let currentScenario = 'school';
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            selectScenario('school');
-            document.getElementById('epsilonSlider').addEventListener('input', updateSimulation);
-        });
-        
-        function selectScenario(scenarioKey) {
-            currentScenario = scenarioKey;
-            const scenario = scenarios[scenarioKey];
-            
-            // Update card styling
-            document.querySelectorAll('.scenario-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            document.querySelector(`[data-scenario="${scenarioKey}"]`).classList.add('active');
-            
-            // Update simulator UI
-            document.getElementById('simTitle').textContent = scenario.title;
-            document.getElementById('simSubtitle').textContent = scenario.subtitle;
-            document.getElementById('contextText').textContent = scenario.context;
-            document.getElementById('trueValue').textContent = formatNumber(scenario.trueValue);
-            document.getElementById('threshold').textContent = formatNumber(scenario.threshold);
-            document.getElementById('thresholdLabel').textContent = 'Threshold: ' + formatNumber(scenario.threshold);
-            
-            // Reset slider
-            document.getElementById('epsilonSlider').value = 1.0;
-            
-            // Update simulation
-            updateSimulation();
-        }
-        
-        function updateSimulation() {
-            const scenario = scenarios[currentScenario];
-            const epsilon = parseFloat(document.getElementById('epsilonSlider').value);
-            
-            // Update epsilon badge
-            document.getElementById('epsilonBadge').textContent = 'ε = ' + epsilon.toFixed(1);
-            
-            // Calculate Laplace noise
-            const sensitivity = scenario.sensitivity;
-            const scale = sensitivity / epsilon;
-            
-            // Generate deterministic "noisy" value for demo
-            const noise = Math.sin(epsilon * 7.3) * scale * scenario.trueValue * 0.03;
-            const noisyValue = Math.round(scenario.trueValue + noise);
-            
-            // Calculate 95% confidence interval
-            const margin = Math.round(1.96 * scale * scenario.trueValue * 0.02 / scenario.scale);
-            const rangeLow = noisyValue - margin;
-            const rangeHigh = noisyValue + margin;
-            
-            // Update displays
-            document.getElementById('noisyValue').textContent = formatNumber(noisyValue);
-            document.getElementById('rangeValue').textContent = formatNumber(rangeLow) + ' – ' + formatNumber(rangeHigh);
-            document.getElementById('rangeLow').textContent = 'Low: ' + formatNumber(rangeLow);
-            document.getElementById('rangeHigh').textContent = 'High: ' + formatNumber(rangeHigh);
-            
-            // Update stats
-            const errorPercent = ((margin / scenario.trueValue) * 100).toFixed(1);
-            document.getElementById('errorPercent').textContent = '±' + errorPercent + '%';
-            document.getElementById('noiseScale').textContent = formatNumber(Math.round(scale * scenario.scale));
-            
-            // Calculate confidence level
-            let confidenceLevel;
-            if (rangeLow >= scenario.threshold || rangeHigh <= scenario.threshold) {
-                confidenceLevel = 'High';
-            } else {
-                confidenceLevel = 'Low';
-            }
-            document.getElementById('confidence').textContent = confidenceLevel;
-            
-            // Update visualization
-            updateVisualization(scenario, noisyValue, rangeLow, rangeHigh);
-            
-            // Update decision outcome
-            updateDecisionOutcome(scenario, noisyValue, rangeLow, rangeHigh);
-            
-            // Update insight
-            updateInsight(epsilon, errorPercent, scenario);
-        }
-        
-        function updateVisualization(scenario, noisyValue, rangeLow, rangeHigh) {
-            const threshold = scenario.threshold;
-            
-            // Calculate positions (percentage of bar)
-            const minVal = Math.min(rangeLow, threshold * 0.85);
-            const maxVal = Math.max(rangeHigh, threshold * 1.15);
-            const range = maxVal - minVal;
-            
-            const thresholdPos = ((threshold - minVal) / range) * 100;
-            const valuePos = ((noisyValue - minVal) / range) * 100;
-            const rangeStartPos = ((rangeLow - minVal) / range) * 100;
-            const rangeWidth = ((rangeHigh - rangeLow) / range) * 100;
-            
-            // Apply positions
-            document.getElementById('thresholdLine').style.left = thresholdPos + '%';
-            document.getElementById('valueMarker').style.left = valuePos + '%';
-            document.getElementById('valueLabel').textContent = formatNumber(noisyValue);
-            
-            const uncertaintyRange = document.getElementById('uncertaintyRange');
-            uncertaintyRange.style.left = rangeStartPos + '%';
-            uncertaintyRange.style.width = rangeWidth + '%';
-        }
-        
-        function updateDecisionOutcome(scenario, noisyValue, rangeLow, rangeHigh) {
-            const threshold = scenario.threshold;
-            const outcomeEl = document.getElementById('decisionOutcome');
-            
-            let outcomeClass, badgeText, explanationText;
-            
-            if (rangeLow >= threshold) {
-                outcomeClass = 'positive';
-                badgeText = '✅ ' + scenario.aboveOutcome;
-                explanationText = `The entire uncertainty range is above the threshold. You can make this decision with high confidence.`;
-            } else if (rangeHigh <= threshold) {
-                outcomeClass = 'negative';
-                badgeText = '❌ ' + scenario.belowOutcome;
-                explanationText = `The entire uncertainty range is below the threshold. The denial is statistically confident.`;
-            } else {
-                outcomeClass = 'uncertain';
-                badgeText = '⚠️ UNCERTAIN — Cannot make confident decision';
-                explanationText = `The uncertainty range spans the threshold. The true value could be on either side—you're essentially guessing!`;
-            }
-            
-            outcomeEl.className = 'decision-outcome ' + outcomeClass;
-            outcomeEl.innerHTML = `
-                <div class="decision-badge">${badgeText}</div>
-                <p>${explanationText}</p>
-            `;
-        }
-        
-        function updateInsight(epsilon, errorPercent, scenario) {
-            let insightText;
-            
-            if (epsilon < 1) {
-                insightText = `<strong>High Privacy Mode (ε=${epsilon.toFixed(1)}):</strong> With ±${errorPercent}% uncertainty, 
-                    privacy protection is strong, but decisions near thresholds become nearly impossible. 
-                    Small communities are most affected because the noise is a larger fraction of their population.`;
-            } else if (epsilon < 2.5) {
-                insightText = `<strong>Balanced Mode (ε=${epsilon.toFixed(1)}):</strong> With ±${errorPercent}% uncertainty, 
-                    this provides moderate privacy while keeping data useful. However, borderline cases like this one 
-                    still face significant decision risk.`;
-            } else {
-                insightText = `<strong>High Accuracy Mode (ε=${epsilon.toFixed(1)}):</strong> With only ±${errorPercent}% uncertainty, 
-                    decisions are more reliable. However, privacy protection is weaker—it becomes easier to 
-                    infer information about specific individuals, especially in small areas.`;
-            }
-            
-            document.getElementById('insightText').innerHTML = insightText;
-        }
-        
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        }
-        
-        function resetAndExplore() {
-            document.getElementById('epsilonSlider').value = 1.0;
-            window.scrollTo({ top: document.querySelector('.scenario-section').offsetTop - 100, behavior: 'smooth' });
-        }
-        
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
+    <!-- Scripts -->
+    <script src="js/scenario-data.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/comparison.js"></script>
+    <script src="js/story-builder.js"></script>
+    <script src="js/flow-diagram.js"></script>
 </body>
 </html>

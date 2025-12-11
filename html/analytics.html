@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Analytics | Civic Data Explorer</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root {
+            --bg-deep: #0c1220;
+            --bg-primary: #121a2e;
+            --bg-card: #1a2540;
+            --bg-elevated: #243256;
+            --bg-highlight: #2d3f6a;
+            --text-bright: #f4f7fb;
+            --text-primary: #d8e2ef;
+            --text-secondary: #9ba8c2;
+            --text-muted: #6b7a96;
+            --accent-gold: #f0b429;
+            --accent-gold-soft: rgba(240, 180, 41, 0.15);
+            --accent-teal: #2dd4bf;
+            --accent-teal-soft: rgba(45, 212, 191, 0.12);
+            --accent-coral: #fb7185;
+            --accent-coral-soft: rgba(251, 113, 133, 0.12);
+            --accent-violet: #a78bfa;
+            --accent-violet-soft: rgba(167, 139, 250, 0.12);
+            --accent-sky: #38bdf8;
+            --accent-sky-soft: rgba(56, 189, 248, 0.12);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.12);
+            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'Source Sans 3', -apple-system, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+        }
+        
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .analytics-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .scenario-selector {
+            display: flex;
+            gap: var(--space-sm);
+            background: var(--bg-elevated);
+            padding: 4px;
+            border-radius: 30px;
+        }
+        
+        .scenario-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 26px;
+            transition: all 0.2s;
+            font-family: var(--font-body);
+        }
+        
+        .scenario-btn.active {
+            background: var(--accent-gold);
+            color: var(--bg-deep);
+        }
+        
+        .scenario-btn:hover:not(.active) {
+            color: var(--text-bright);
+        }
+        
+        .epsilon-control {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            background: var(--bg-card);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .epsilon-control label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .epsilon-control input[type="range"] {
+            flex: 1;
+            max-width: 300px;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-teal), var(--accent-gold), var(--accent-coral));
+            -webkit-appearance: none;
+        }
+        
+        .epsilon-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--text-bright);
+            border: 3px solid var(--accent-gold);
+            cursor: pointer;
+        }
+        
+        .epsilon-badge {
+            background: var(--accent-gold-soft);
+            color: var(--accent-gold);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Charts Grid - 4 columns for main charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: all 0.3s;
+        }
+        
+        .chart-card:hover {
+            border-color: var(--border-medium);
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .chart-card.wide {
+            grid-column: span 2;
+        }
+        
+        .chart-card.full {
+            grid-column: span 4;
+        }
+        
+        .chart-card h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--text-bright);
+            margin-bottom: var(--space-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .chart-card .chart-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-md);
+            line-height: 1.5;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 200px;
+        }
+        
+        .chart-card.wide .chart-wrapper {
+            height: 250px;
+        }
+        
+        .chart-card.tall .chart-wrapper {
+            height: 300px;
+        }
+        
+        .chart-wrapper canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+        }
+        
+        .stat-card .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card.gold .stat-value { color: var(--accent-gold); }
+        .stat-card.teal .stat-value { color: var(--accent-teal); }
+        .stat-card.coral .stat-value { color: var(--accent-coral); }
+        .stat-card.violet .stat-value { color: var(--accent-violet); }
+        .stat-card.sky .stat-value { color: var(--accent-sky); }
+        
+        /* Metric indicator */
+        .metric-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+            padding: var(--space-sm) var(--space-md);
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+        }
+        
+        .metric-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .metric-dot.good { background: var(--success); }
+        .metric-dot.warning { background: var(--warning); }
+        .metric-dot.danger { background: var(--danger); }
+        
+        .metric-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-lg);
+            margin-top: var(--space-md);
+            font-size: 0.75rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+        
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-card.wide { grid-column: span 2; }
+            .chart-card.full { grid-column: span 2; }
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .chart-card.wide, .chart-card.full { grid-column: span 1; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .scenario-selector { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-container">
+        <!-- Header -->
+        <header class="analytics-header">
+            <h1>📈 Advanced Analytics Dashboard</h1>
+            <div class="scenario-selector">
+                <button class="scenario-btn active" data-scenario="school">🏫 School</button>
+                <button class="scenario-btn" data-scenario="hospital">🏥 Clinic</button>
+                <button class="scenario-btn" data-scenario="redistrict">🗳️ Redistrict</button>
+            </div>
+        </header>
+        
+        <!-- Epsilon Control -->
+        <div class="epsilon-control">
+            <label>Privacy Level (ε):</label>
+            <input type="range" id="epsilonSlider" min="0.1" max="5" step="0.1" value="1.0">
+            <span class="epsilon-badge" id="epsilonBadge">ε = 1.0</span>
+            <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: auto;">
+                🔒 More Privacy ←→ More Accuracy 📊
+            </span>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card gold">
+                <div class="stat-value" id="statTrueValue">1,247</div>
+                <div class="stat-label">True Value</div>
+            </div>
+            <div class="stat-card teal">
+                <div class="stat-value" id="statThreshold">1,200</div>
+                <div class="stat-label">Threshold</div>
+            </div>
+            <div class="stat-card coral">
+                <div class="stat-value" id="statFlipProb">—%</div>
+                <div class="stat-label">Flip Probability</div>
+            </div>
+            <div class="stat-card violet">
+                <div class="stat-value" id="statError">±—%</div>
+                <div class="stat-label">Error Range</div>
+            </div>
+            <div class="stat-card sky">
+                <div class="stat-value" id="statConfidence">—%</div>
+                <div class="stat-label">Confidence</div>
+            </div>
+        </div>
+        
+        <!-- Charts Grid - Row 1 -->
+        <div class="charts-grid">
+            <!-- Chart 1: Outcome Distribution Histogram -->
+            <div class="chart-card">
+                <h3>📊 Outcome Distribution</h3>
+                <p class="chart-desc">Distribution of 1000 simulated noisy outcomes</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart1"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--accent-coral)"></span> Denied</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--accent-teal)"></span> Approved</div>
+                </div>
+            </div>
+            
+            <!-- Chart 2: Flip Probability vs Epsilon -->
+            <div class="chart-card">
+                <h3>🔄 Flip Probability vs ε</h3>
+                <p class="chart-desc">How decision error changes with privacy level</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart2"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 3: Error Range vs Epsilon -->
+            <div class="chart-card">
+                <h3>📏 Error Range vs ε</h3>
+                <p class="chart-desc">Uncertainty bounds at different privacy levels</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart3"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 4: Confidence Level vs Epsilon -->
+            <div class="chart-card">
+                <h3>✅ Decision Confidence vs ε</h3>
+                <p class="chart-desc">Probability of making correct decision</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart4"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 5: Cumulative Distribution -->
+            <div class="chart-card wide">
+                <h3>📈 Cumulative Distribution Function</h3>
+                <p class="chart-desc">CDF of noisy outcomes showing probability of falling below any value</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart5"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 6: Box Plot / Range Visualization -->
+            <div class="chart-card wide">
+                <h3>📦 Uncertainty Range Comparison</h3>
+                <p class="chart-desc">Range of possible outcomes at different ε values</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart6"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 7: Scenario Comparison -->
+            <div class="chart-card wide">
+                <h3>🔀 Cross-Scenario Comparison</h3>
+                <p class="chart-desc">Flip probability across all three scenarios</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart7"></canvas>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--accent-gold)"></span> School</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--accent-coral)"></span> Clinic</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--accent-violet)"></span> Redistrict</div>
+                </div>
+            </div>
+            
+            <!-- Chart 8: Sensitivity Analysis -->
+            <div class="chart-card wide">
+                <h3>🎯 Sensitivity Analysis</h3>
+                <p class="chart-desc">How margin from threshold affects decision stability</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart8"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 9: Privacy-Utility Tradeoff -->
+            <div class="chart-card">
+                <h3>⚖️ Privacy-Utility Tradeoff</h3>
+                <p class="chart-desc">Visual representation of the core tradeoff</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart9"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 10: Decision Stability Heatmap -->
+            <div class="chart-card">
+                <h3>🌡️ Decision Stability</h3>
+                <p class="chart-desc">Stability score across epsilon range</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart10"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 11: Monte Carlo Convergence -->
+            <div class="chart-card">
+                <h3>🎲 Monte Carlo Convergence</h3>
+                <p class="chart-desc">How flip estimate converges with more samples</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart11"></canvas>
+                </div>
+            </div>
+            
+            <!-- Chart 12: Noise Distribution -->
+            <div class="chart-card">
+                <h3>📉 Laplace Noise Distribution</h3>
+                <p class="chart-desc">Shape of the noise distribution at current ε</p>
+                <div class="chart-wrapper">
+                    <canvas id="chart12"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================
+        // SCENARIO DATA
+        // ============================================
+        const scenarios = {
+            school: {
+                id: 'school', icon: '🏫', title: 'School Funding',
+                trueValue: 1247, threshold: 1200, sensitivity: 1, scale: 1
+            },
+            hospital: {
+                id: 'hospital', icon: '🏥', title: 'Rural Clinic',
+                trueValue: 4850, threshold: 5000, sensitivity: 1, scale: 1
+            },
+            redistrict: {
+                id: 'redistrict', icon: '🗳️', title: 'Redistricting',
+                trueValue: 710000, threshold: 700000, sensitivity: 1000, scale: 1000
+            }
+        };
+        
+        let currentScenario = 'school';
+        let currentEpsilon = 1.0;
+        const charts = {};
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initControls();
+            updateAllCharts();
+            
+            // Listen for messages from parent window
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'updateParams') {
+                    if (event.data.scenario && event.data.scenario !== currentScenario) {
+                        currentScenario = event.data.scenario;
+                        document.querySelectorAll('.scenario-btn').forEach(b => {
+                            b.classList.toggle('active', b.dataset.scenario === currentScenario);
+                        });
+                    }
+                    if (event.data.epsilon !== undefined && event.data.epsilon !== currentEpsilon) {
+                        currentEpsilon = event.data.epsilon;
+                        document.getElementById('epsilonSlider').value = currentEpsilon;
+                        document.getElementById('epsilonBadge').textContent = `ε = ${currentEpsilon.toFixed(1)}`;
+                    }
+                    updateAllCharts();
+                }
+            });
+        });
+        
+        function initControls() {
+            // Scenario buttons
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentScenario = btn.dataset.scenario;
+                    updateAllCharts();
+                });
+            });
+            
+            // Epsilon slider
+            const slider = document.getElementById('epsilonSlider');
+            slider.addEventListener('input', () => {
+                currentEpsilon = parseFloat(slider.value);
+                document.getElementById('epsilonBadge').textContent = `ε = ${currentEpsilon.toFixed(1)}`;
+                updateAllCharts();
+            });
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        function generateLaplaceSamples(scenario, epsilon, n = 1000) {
+            const scale = scenario.sensitivity / epsilon;
+            const samples = [];
+            for (let i = 0; i < n; i++) {
+                const u = Math.random() - 0.5;
+                const noise = -scale * Math.sign(u) * Math.log(1 - 2 * Math.abs(u));
+                samples.push(scenario.trueValue + noise * scenario.trueValue * 0.02 / scenario.scale);
+            }
+            return samples.sort((a, b) => a - b);
+        }
+        
+        function calculateFlipProbability(scenario, epsilon, samples = null) {
+            if (!samples) samples = generateLaplaceSamples(scenario, epsilon, 500);
+            const threshold = scenario.threshold;
+            const trueAbove = scenario.trueValue >= threshold;
+            let flips = 0;
+            samples.forEach(s => { if ((s >= threshold) !== trueAbove) flips++; });
+            return (flips / samples.length) * 100;
+        }
+        
+        function calculateError(scenario, epsilon) {
+            const scale = scenario.sensitivity / epsilon;
+            const margin = 1.96 * scale * scenario.trueValue * 0.02 / scenario.scale;
+            return (margin / scenario.trueValue) * 100;
+        }
+        
+        // ============================================
+        // UPDATE ALL CHARTS
+        // ============================================
+        function updateAllCharts() {
+            const scenario = scenarios[currentScenario];
+            const samples = generateLaplaceSamples(scenario, currentEpsilon, 1000);
+            
+            // Update stats
+            document.getElementById('statTrueValue').textContent = formatNumber(scenario.trueValue);
+            document.getElementById('statThreshold').textContent = formatNumber(scenario.threshold);
+            
+            const flipProb = calculateFlipProbability(scenario, currentEpsilon, samples);
+            document.getElementById('statFlipProb').textContent = flipProb.toFixed(1) + '%';
+            
+            const error = calculateError(scenario, currentEpsilon);
+            document.getElementById('statError').textContent = '±' + error.toFixed(1) + '%';
+            
+            const confidence = 100 - flipProb;
+            document.getElementById('statConfidence').textContent = confidence.toFixed(1) + '%';
+            
+            // Update each chart
+            updateChart1(scenario, samples);
+            updateChart2(scenario);
+            updateChart3(scenario);
+            updateChart4(scenario);
+            updateChart5(scenario, samples);
+            updateChart6(scenario);
+            updateChart7();
+            updateChart8(scenario);
+            updateChart9(scenario);
+            updateChart10(scenario);
+            updateChart11(scenario);
+            updateChart12(scenario);
+        }
+        
+        // ============================================
+        // CHART 1: Outcome Distribution Histogram
+        // ============================================
+        function updateChart1(scenario, samples) {
+            const ctx = document.getElementById('chart1');
+            if (charts.chart1) charts.chart1.destroy();
+            
+            const min = Math.min(...samples);
+            const max = Math.max(...samples);
+            const bins = 30;
+            const binWidth = (max - min) / bins;
+            const counts = new Array(bins).fill(0);
+            
+            samples.forEach(s => {
+                const idx = Math.min(Math.floor((s - min) / binWidth), bins - 1);
+                counts[idx]++;
+            });
+            
+            const colors = counts.map((_, i) => {
+                const center = min + (i + 0.5) * binWidth;
+                return center < scenario.threshold ? 'rgba(251, 113, 133, 0.7)' : 'rgba(45, 212, 191, 0.7)';
+            });
+            
+            charts.chart1 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: counts.map(() => ''),
+                    datasets: [{ data: counts, backgroundColor: colors, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 2: Flip Probability vs Epsilon
+        // ============================================
+        function updateChart2(scenario) {
+            const ctx = document.getElementById('chart2');
+            if (charts.chart2) charts.chart2.destroy();
+            
+            const epsilons = [], flipProbs = [];
+            for (let e = 0.1; e <= 5; e += 0.2) {
+                epsilons.push(e.toFixed(1));
+                flipProbs.push(calculateFlipProbability(scenario, e));
+            }
+            
+            const currentIdx = Math.round((currentEpsilon - 0.1) / 0.2);
+            const pointRadius = epsilons.map((_, i) => i === currentIdx ? 6 : 2);
+            
+            charts.chart2 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epsilons,
+                    datasets: [{
+                        data: flipProbs,
+                        borderColor: 'rgba(251, 113, 133, 0.8)',
+                        backgroundColor: 'rgba(251, 113, 133, 0.1)',
+                        fill: true, tension: 0.4,
+                        pointRadius: pointRadius,
+                        pointBackgroundColor: epsilons.map((_, i) => i === currentIdx ? '#f0b429' : 'rgba(251, 113, 133, 0.5)')
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 50 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 3: Error Range vs Epsilon
+        // ============================================
+        function updateChart3(scenario) {
+            const ctx = document.getElementById('chart3');
+            if (charts.chart3) charts.chart3.destroy();
+            
+            const epsilons = [], errors = [];
+            for (let e = 0.1; e <= 5; e += 0.2) {
+                epsilons.push(e.toFixed(1));
+                errors.push(calculateError(scenario, e));
+            }
+            
+            charts.chart3 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epsilons,
+                    datasets: [{
+                        data: errors,
+                        borderColor: 'rgba(240, 180, 41, 0.8)',
+                        backgroundColor: 'rgba(240, 180, 41, 0.1)',
+                        fill: true, tension: 0.4, pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 4: Confidence vs Epsilon
+        // ============================================
+        function updateChart4(scenario) {
+            const ctx = document.getElementById('chart4');
+            if (charts.chart4) charts.chart4.destroy();
+            
+            const epsilons = [], confidences = [];
+            for (let e = 0.1; e <= 5; e += 0.2) {
+                epsilons.push(e.toFixed(1));
+                confidences.push(100 - calculateFlipProbability(scenario, e));
+            }
+            
+            charts.chart4 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epsilons,
+                    datasets: [{
+                        data: confidences,
+                        borderColor: 'rgba(45, 212, 191, 0.8)',
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        fill: true, tension: 0.4, pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 50, max: 100 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 5: CDF
+        // ============================================
+        function updateChart5(scenario, samples) {
+            const ctx = document.getElementById('chart5');
+            if (charts.chart5) charts.chart5.destroy();
+            
+            const n = samples.length;
+            const cdf = samples.map((_, i) => ((i + 1) / n) * 100);
+            const labels = samples.filter((_, i) => i % 20 === 0).map(s => Math.round(s));
+            const cdfFiltered = cdf.filter((_, i) => i % 20 === 0);
+            
+            // Find threshold index
+            const thresholdIdx = samples.findIndex(s => s >= scenario.threshold);
+            const thresholdCdf = thresholdIdx >= 0 ? (thresholdIdx / n) * 100 : 100;
+            
+            charts.chart5 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: cdfFiltered,
+                        borderColor: 'rgba(167, 139, 250, 0.8)',
+                        backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                        fill: true, tension: 0.3, pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        annotation: {
+                            annotations: {
+                                threshold: {
+                                    type: 'line',
+                                    xMin: scenario.threshold,
+                                    xMax: scenario.threshold,
+                                    borderColor: 'rgba(251, 113, 133, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5]
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 8 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 6: Uncertainty Range Comparison
+        // ============================================
+        function updateChart6(scenario) {
+            const ctx = document.getElementById('chart6');
+            if (charts.chart6) charts.chart6.destroy();
+            
+            const epsilonValues = [0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0];
+            const ranges = epsilonValues.map(e => {
+                const error = calculateError(scenario, e);
+                const margin = scenario.trueValue * (error / 100);
+                return { min: scenario.trueValue - margin, max: scenario.trueValue + margin };
+            });
+            
+            charts.chart6 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: epsilonValues.map(e => `ε=${e}`),
+                    datasets: [
+                        {
+                            label: 'Below True',
+                            data: ranges.map(r => scenario.trueValue - r.min),
+                            backgroundColor: 'rgba(251, 113, 133, 0.6)',
+                            stack: 'range'
+                        },
+                        {
+                            label: 'Above True',
+                            data: ranges.map(r => r.max - scenario.trueValue),
+                            backgroundColor: 'rgba(45, 212, 191, 0.6)',
+                            stack: 'range'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, stacked: true },
+                        y: { grid: { display: false }, ticks: { color: '#6b7a96', font: { size: 9 } }, stacked: true }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 7: Cross-Scenario Comparison
+        // ============================================
+        function updateChart7() {
+            const ctx = document.getElementById('chart7');
+            if (charts.chart7) charts.chart7.destroy();
+            
+            const epsilons = [];
+            for (let e = 0.2; e <= 5; e += 0.3) epsilons.push(e.toFixed(1));
+            
+            const datasets = [
+                { scenario: scenarios.school, color: 'rgba(240, 180, 41, 0.8)' },
+                { scenario: scenarios.hospital, color: 'rgba(251, 113, 133, 0.8)' },
+                { scenario: scenarios.redistrict, color: 'rgba(167, 139, 250, 0.8)' }
+            ].map(({ scenario, color }) => ({
+                label: scenario.title,
+                data: epsilons.map(e => calculateFlipProbability(scenario, parseFloat(e))),
+                borderColor: color,
+                backgroundColor: 'transparent',
+                tension: 0.4, pointRadius: 2
+            }));
+            
+            charts.chart7 = new Chart(ctx, {
+                type: 'line',
+                data: { labels: epsilons, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 8 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 50 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 8: Sensitivity Analysis
+        // ============================================
+        function updateChart8(scenario) {
+            const ctx = document.getElementById('chart8');
+            if (charts.chart8) charts.chart8.destroy();
+            
+            // Simulate different margins from threshold
+            const margins = [-10, -5, -2, -1, 0, 1, 2, 5, 10];
+            const flipProbs = margins.map(marginPct => {
+                const testScenario = {
+                    ...scenario,
+                    trueValue: scenario.threshold * (1 + marginPct / 100)
+                };
+                return calculateFlipProbability(testScenario, currentEpsilon);
+            });
+            
+            charts.chart8 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: margins.map(m => `${m > 0 ? '+' : ''}${m}%`),
+                    datasets: [{
+                        data: flipProbs,
+                        borderColor: 'rgba(56, 189, 248, 0.8)',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        fill: true, tension: 0.4, pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Margin from Threshold', color: '#6b7a96', font: { size: 9 } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { color: '#6b7a96', font: { size: 8 } } 
+                        },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 60 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 9: Privacy-Utility Tradeoff
+        // ============================================
+        function updateChart9(scenario) {
+            const ctx = document.getElementById('chart9');
+            if (charts.chart9) charts.chart9.destroy();
+            
+            const epsilons = [];
+            const privacyLoss = [], utilityGain = [];
+            for (let e = 0.1; e <= 5; e += 0.2) {
+                epsilons.push(e.toFixed(1));
+                privacyLoss.push(e * 20); // Privacy loss increases with epsilon
+                utilityGain.push(100 - calculateFlipProbability(scenario, e)); // Utility = confidence
+            }
+            
+            charts.chart9 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epsilons,
+                    datasets: [
+                        {
+                            label: 'Utility',
+                            data: utilityGain,
+                            borderColor: 'rgba(45, 212, 191, 0.8)',
+                            backgroundColor: 'transparent',
+                            tension: 0.4, pointRadius: 2
+                        },
+                        {
+                            label: 'Privacy Loss',
+                            data: privacyLoss,
+                            borderColor: 'rgba(251, 113, 133, 0.8)',
+                            backgroundColor: 'transparent',
+                            tension: 0.4, pointRadius: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: true, labels: { color: '#6b7a96', font: { size: 9 } } } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 }, maxTicksLimit: 6 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 10: Decision Stability
+        // ============================================
+        function updateChart10(scenario) {
+            const ctx = document.getElementById('chart10');
+            if (charts.chart10) charts.chart10.destroy();
+            
+            const epsilons = [];
+            const stability = [];
+            for (let e = 0.1; e <= 5; e += 0.2) {
+                epsilons.push(e.toFixed(1));
+                const flip = calculateFlipProbability(scenario, e);
+                stability.push(100 - flip);
+            }
+            
+            const colors = stability.map(s => {
+                if (s >= 90) return 'rgba(52, 211, 153, 0.7)';
+                if (s >= 70) return 'rgba(251, 191, 36, 0.7)';
+                return 'rgba(248, 113, 113, 0.7)';
+            });
+            
+            charts.chart10 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: epsilons,
+                    datasets: [{ data: stability, backgroundColor: colors, borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#6b7a96', font: { size: 7 }, maxTicksLimit: 8 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } }, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 11: Monte Carlo Convergence
+        // ============================================
+        function updateChart11(scenario) {
+            const ctx = document.getElementById('chart11');
+            if (charts.chart11) charts.chart11.destroy();
+            
+            const sampleSizes = [10, 25, 50, 100, 250, 500, 1000];
+            const estimates = sampleSizes.map(n => calculateFlipProbability(scenario, currentEpsilon, generateLaplaceSamples(scenario, currentEpsilon, n)));
+            
+            charts.chart11 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sampleSizes,
+                    datasets: [{
+                        data: estimates,
+                        borderColor: 'rgba(167, 139, 250, 0.8)',
+                        backgroundColor: 'transparent',
+                        tension: 0.3, pointRadius: 4,
+                        pointBackgroundColor: 'rgba(167, 139, 250, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Samples', color: '#6b7a96', font: { size: 9 } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { color: '#6b7a96', font: { size: 8 } } 
+                        },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 8 } } }
+                    }
+                }
+            });
+        }
+        
+        // ============================================
+        // CHART 12: Laplace Noise Distribution
+        // ============================================
+        function updateChart12(scenario) {
+            const ctx = document.getElementById('chart12');
+            if (charts.chart12) charts.chart12.destroy();
+            
+            const scale = scenario.sensitivity / currentEpsilon;
+            const x = [], y = [];
+            for (let i = -50; i <= 50; i++) {
+                const val = i * scale * 0.1;
+                x.push(val.toFixed(0));
+                y.push(Math.exp(-Math.abs(val) / scale) / (2 * scale) * 100);
+            }
+            
+            charts.chart12 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: x.filter((_, i) => i % 5 === 0),
+                    datasets: [{
+                        data: y.filter((_, i) => i % 5 === 0),
+                        borderColor: 'rgba(56, 189, 248, 0.8)',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        fill: true, tension: 0.3, pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7a96', font: { size: 7 }, maxTicksLimit: 7 } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
